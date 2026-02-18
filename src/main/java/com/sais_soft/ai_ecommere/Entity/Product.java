@@ -43,6 +43,9 @@ public class Product {
   @Column(name ="product_name")
   private String productName;
   
+  @Column(name="SKU_Code")
+  private String internalSecretCode;
+  
   @Column(name="product_description")
   private String description;
   

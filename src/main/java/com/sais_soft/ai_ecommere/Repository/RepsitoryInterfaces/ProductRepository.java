@@ -7,6 +7,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 import com.sais_soft.ai_ecommere.Entity.Product;
+import com.sais_soft.ai_ecommere.dto.ProductSearchDTO;
 
 public interface ProductRepository {
 
@@ -19,12 +20,14 @@ public interface ProductRepository {
 	Page<Product> findAllActive(Pageable pageable);
 	
 	
-	List<Product> searchByName(String keyword);
+	Page<Product> getProducts(ProductSearchDTO searchDto);
 	
 	List<Product> findByPriceRange(double min,double max);
 	
 	void softDelete(Long id);
 	
 	long countActiveProducts();
+
+	
 	
 }
