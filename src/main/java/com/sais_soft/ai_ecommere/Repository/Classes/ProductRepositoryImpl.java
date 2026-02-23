@@ -28,6 +28,9 @@ import com.sais_soft.ai_ecommere.dto.SortRequestDTO;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.TypedQuery;
+import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.CriteriaQuery;
+import jakarta.persistence.criteria.Root;
 
 
 @Repository
@@ -248,15 +251,27 @@ public class ProductRepositoryImpl implements ProductRepository{
 
 	@Override
 	public void softDelete(Long id) {
-		// TODO Auto-generated method stub
+		logger.info("Entered into  soft delete method ::{}",id);
+	
+		Product product = entityManager.find(Product.class, id);
+       logger.info("product ::{}",product);
+		if (product != null) {
+		    entityManager.remove(product);
+		    logger.info("product is removed");
+		}
 		
 	}
 
 
 	@Override
 	public long countActiveProducts() {
-		// TODO Auto-generated method stub
-		return 0;
+		CriteriaBuilder cb =entityManager.getCriteriaBuilder();
+		CriteriaQuery< Long> cq =cb.createQuery(Long.class);
+		Root<Product> root = cq.from(Product.class);
+		cq.select(cb.count(root)).where(cb.isFalse(root.get("isDeleted")));
+		
+		return entityManager.createQuery(cq).getSingleResult();
+		
 	}
 	
 	
