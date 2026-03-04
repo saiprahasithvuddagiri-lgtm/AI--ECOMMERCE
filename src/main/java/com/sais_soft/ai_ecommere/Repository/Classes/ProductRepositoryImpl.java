@@ -1,6 +1,7 @@
 package com.sais_soft.ai_ecommere.Repository.Classes;
 
 import java.lang.reflect.Field;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -90,9 +91,9 @@ public class ProductRepositoryImpl implements ProductRepository{
 	public List<Product> findAllActive() {
 		logger.info("Entered into findAllActive Method");
 		try {
-		 TypedQuery<Product> query = entityManager.createQuery("From product p where isDeleted=false",
+		 TypedQuery<Product> query = entityManager.createQuery("From Product p where p.isDeleted=false",
 				 Product.class);
-		logger.info(" the products list ::{}",query.getResultList()); 
+		logger.info(" the products list ::{}",query.getResultList().size()); 
 		 return query.getResultList();
 		}
 		catch(Exception e) {
