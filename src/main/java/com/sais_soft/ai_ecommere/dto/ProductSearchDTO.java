@@ -15,7 +15,7 @@ public class ProductSearchDTO {
 	
 	private Map<String,Object> filters;
 	@NotNull
-	@Min(1)
+	@Min(0)
 	private int page;
 	
 	@NotNull

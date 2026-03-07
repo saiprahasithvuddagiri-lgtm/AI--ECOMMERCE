@@ -10,6 +10,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import jakarta.persistence.criteria.Predicate;
 import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
@@ -90,15 +91,12 @@ public class ProductRepositoryImpl implements ProductRepository{
 	@Override
 	public List<Product> findAllActive() {
 		logger.info("Entered into findAllActive Method");
-		try {
+	
 		 TypedQuery<Product> query = entityManager.createQuery("From Product p where p.isDeleted=false",
 				 Product.class);
 		logger.info(" the products list ::{}",query.getResultList().size()); 
 		 return query.getResultList();
-		}
-		catch(Exception e) {
-			throw new RepositoryException("Error to fetch products" ,e);
-		}
+		
 		
 		
 	}
@@ -143,7 +141,7 @@ public class ProductRepositoryImpl implements ProductRepository{
 	public Page<Product> getProducts(ProductSearchDTO searchDto) {
 		logger.info("Entered into getproducts method::{}",searchDto);
 		try {
-		StringBuilder jpql =new StringBuilder("select p from Product p where isDeleted =false");
+		StringBuilder jpql =new StringBuilder("select p from Product p where isDeleted =false ");
 		Map<String,Object> parameters =new HashMap<String, Object>();
 		// get all entity fields from product table 
 		 Set<String> validFields = Arrays.stream(Product.class.getDeclaredFields())
@@ -161,7 +159,7 @@ public class ProductRepositoryImpl implements ProductRepository{
 	    		 for(String field :stringFields) {
 	    			 Conditions.add("LOWER(p."+field+") LIKE (:keyword)");
 	    		 }
-	    		 jpql.append(String.join("OR",Conditions));
+	    		 jpql.append(String.join(" OR ",Conditions));
 	    		 jpql.append(")");
 	    		 parameters.put("keyword","%"+searchDto.getKeyword().trim()+"%");
 	    		 
@@ -179,7 +177,7 @@ public class ProductRepositoryImpl implements ProductRepository{
 	    			  throw new IllegalArgumentException("Invalid field "+fieldvalue);
 	    		  }
 	    		  if(value instanceof String) {
-	    			  jpql.append("And LOWER(p.")
+	    			  jpql.append(" And LOWER(p.")
 	    			   .append(fieldvalue)
 	    			   .append(") LIKE LOWER(:")
 	    			   .append(fieldvalue)
@@ -188,7 +186,7 @@ public class ProductRepositoryImpl implements ProductRepository{
 	    			  
 	    		  }
 	    		  else {
-	    			  jpql.append("And p.")
+	    			  jpql.append(" And p.")
 	    			  .append(fieldvalue)
 	    			  .append("= :")
 	    			  .append(fieldvalue);
@@ -222,7 +220,7 @@ public class ProductRepositoryImpl implements ProductRepository{
 	     List<Product> productsList = query.getResultList();  
 	     logger.info(" the result list ::{}",productsList.size());
 	     String countQueryStr = jpql.toString()
-	                .replaceFirst("SELECT p FROM", "SELECT COUNT(p) FROM")
+	                .replaceFirst("select p from", "SELECT COUNT(p) FROM")
 	                .replaceFirst("ORDER BY.*", "");
 
 	        TypedQuery<Long> countQuery =
@@ -265,15 +263,61 @@ public class ProductRepositoryImpl implements ProductRepository{
 
 
 	@Override
-	public long countActiveProducts() {
+	public long countActiveProductsWithFilters(ProductSearchDTO searchDto) {
 		CriteriaBuilder cb =entityManager.getCriteriaBuilder();
 		CriteriaQuery< Long> cq =cb.createQuery(Long.class);
 		Root<Product> root = cq.from(Product.class);
-		cq.select(cb.count(root)).where(cb.isFalse(root.get("isDeleted")));
+		List<Predicate> predicates =new ArrayList<Predicate>();
 		
+		 Set<String> validFields = Arrays.stream(Product.class.getDeclaredFields())
+	                .map(Field::getName)
+	                .collect(Collectors.toSet());
+	     logger.info("get dervived fields from product entity ::{}",validFields);
+	     if(Objects.nonNull(searchDto.getKeyword()) && !searchDto.getKeyword().isBlank()) {
+	    	 List<String> stringFields = Arrays.stream(Product.class.getDeclaredFields())
+	                    .filter(f -> f.getType().equals(String.class))
+	                    .map(Field::getName)
+	                    .toList();
+	    	 logger.info("String Fields : {}",stringFields);
+	    	 List<Predicate> keywordPredicates =new ArrayList<Predicate>();
+	    	 if(!stringFields.isEmpty()) {
+	    		for(String field :stringFields) {
+	    			logger.info("{}","%"+searchDto.getKeyword().trim().toLowerCase()+"%");
+	    			keywordPredicates.add(cb.like(cb.lower(root.get(field)),"%"+searchDto.getKeyword().trim().toLowerCase()+"%"));
+	    		}
+	    	    predicates.add(cb.or(keywordPredicates.toArray(new Predicate[0])));
+	    		logger.info("Keyword Filters ::{}",keywordPredicates.size()==stringFields.size()); 
+	    	 }}
+	     
+	     if(searchDto.getFilters() !=null) {
+	    	 for(Map.Entry<String,Object> filter : searchDto.getFilters().entrySet()) {
+	    		 String field =filter.getKey();
+	    		 Object value =filter.getValue();
+	    		 if(value instanceof String) {
+	    			 predicates.add((Predicate) cb.like(cb.lower(root.get(field)),"%"+value.toString().trim().toLowerCase()+"%"));
+	    		 }
+	    		 else {
+	    			predicates.add((Predicate) cb.equal(root.get(field),value)); 
+	    		 }
+	    	 }
+	     }
+	     
+	     cq.select(cb.count(root));
+	     cq.where((jakarta.persistence.criteria.Predicate[]) predicates.toArray(new Predicate[0]));
+	
 		return entityManager.createQuery(cq).getSingleResult();
-		
+	
 	}
+
+
+	@Override
+	public long countActiveProducts() {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+
+
+	
 	
 	
 	
