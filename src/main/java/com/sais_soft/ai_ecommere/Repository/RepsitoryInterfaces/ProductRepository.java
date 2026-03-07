@@ -28,6 +28,8 @@ public interface ProductRepository {
 	
 	long countActiveProducts();
 
+	long countActiveProductsWithFilters(ProductSearchDTO searchDto);
+
 	
 	
 }
