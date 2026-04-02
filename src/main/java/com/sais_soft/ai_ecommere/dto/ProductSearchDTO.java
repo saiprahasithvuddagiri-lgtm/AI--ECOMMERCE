@@ -9,7 +9,26 @@ import lombok.Getter;
 import lombok.Setter;
 @Getter
 @Setter
+
+
 public class ProductSearchDTO {
+	
+	
+//	{
+//		  "keyword": "p",
+//		  "filters": {
+//		   "productName": "p"
+//		   
+//		  },
+//		  "page": 0,
+//		  "size": 15,
+//		  "sort": [
+//		    {
+//		      "field": "price",
+//		      "direction": "ASC"
+//		    }
+//		  ]
+//		}
 
 	private String keyword;
 	
@@ -23,5 +42,8 @@ public class ProductSearchDTO {
 	private int size;
 	
 	private List<SortRequestDTO> sort;
+	
+	
+	
 	
 }
