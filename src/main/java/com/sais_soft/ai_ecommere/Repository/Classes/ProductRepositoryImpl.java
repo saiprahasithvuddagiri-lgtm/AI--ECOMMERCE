@@ -33,6 +33,7 @@ import jakarta.persistence.TypedQuery;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
 import jakarta.persistence.criteria.Root;
+import jakarta.transaction.Transactional;
 
 
 @Repository
@@ -44,6 +45,7 @@ public class ProductRepositoryImpl implements ProductRepository{
 	private  EntityManager entityManager;
 
 	@Override
+	@Transactional
 	public Product save(Product product) {
 		logger.info("Enetered into save Product Method");
 		try {
@@ -317,7 +319,6 @@ public class ProductRepositoryImpl implements ProductRepository{
 	}
 
 
-	
 	
 	
 	
